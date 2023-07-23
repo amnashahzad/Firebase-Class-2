@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="./style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <h1 class="container" style="text-align: center;">Login Form</h1>
+    <form>
+        <div class="imgcontainer">
+            <img src="https://avatars.githubusercontent.com/u/121329321?v=4" alt="Avatar" class="avatar">
+        </div>
+        <div class="container">
+            <label for="uname"><b>Username</b></label>
+            <input id="name" type="text" placeholder="Enter Username" name="uname">
+            <label for="psw"><b>Password</b></label>
+            <input id="password" type="password" placeholder="Enter Password" name="psw">
+        </div>
+    </form>
+    <div class="container">
+        <button onclick="signup()">Signup</button>
+        <button onclick="logIn()">Login</button>
+        <button onclick="updateUserData()">Update</button>
+        <button onclick="deleteUserData()">Delete</button>
+    </div>    
+
+    <div class="container">
+        <span class="psw">Forgot <a href="#" style="text-decoration: none; color: blue;">password?</a></span>
+        <button class="cancelbtn" onclick="readUserData()">Get Users</button>
+    </div>
+
+    <!-- Add Firebase JavaScript SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.7.1/firebase-auth.js"></script>
+
+    <script type="text/javascript">
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPKT_ZdNKM7NH8fOehJNJL-Sgphudxu2M",
+            authDomain: "fir-class-76217.firebaseapp.com",
+            databaseURL: "https://fir-class-76217-default-rtdb.firebaseio.com",
+            projectId: "fir-class-76217",
+            storageBucket: "fir-class-76217.appspot.com",
+            messagingSenderId: "53293844292",
+            appId: "1:53293844292:web:f905fe6b9d252748f3f911",
+            measurementId: "G-NTW1S3J6ZN"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        // Initialize Realtime Database and get a reference to the service
+        const database = firebase.database();
+
+        function signup() {
+            let email = document.getElementById("name").value;
+            let password = document.getElementById("password").value;
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    var user = userCredential.user;
+                    writeUserData(user.uid, email, password);
+                    console.log("User created successfully... \n", user);
+                })
+                .catch((error) => {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    console.error("Login error:", errorCode, errorMessage);
+                });
+        }
+
+        function logIn() {
+            let email = document.getElementById("name").value;
+            let password = document.getElementById("password").value;
+
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    var user = userCredential.user;
+                    getUser(user.uid);
+                    console.log('User signed in successfully... \n');
+                })
+                .catch((error) => {
+                    var errorCode = error.code;
+                    var errorMessage = error.message;
+                    console.log("Login error:", errorCode, errorMessage);
+                });
+        }
+
+        function writeUserData(userId, email, password) {
+            firebase.database().ref('users/' + userId).set({
+                userId: userId,
+                email: email,
+                password: password
+            });
+        }
+
+        function readUserData() {
+            const dbRef = firebase.database().ref();
+            dbRef.child("users").get().then((snapshot) => {
+                if (snapshot.exists()) {
+                    console.log(snapshot.val());
+                } else {
+                    console.log("No data available");
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
+        }
+
+        function getUser(userId) {
+            const dbRef = firebase.database().ref();
+            dbRef.child("users").child(userId).get().then((snapshot) => {
+                if (snapshot.exists()) {
+                    console.log(snapshot.val());
+                } else {
+                    console.log("No data available");
+                }
+            }).catch((error) => {
+                console.error(error);
+            });
+        }
+
+        function updateUserData() {
+    const user = firebase.auth().currentUser;
+    if (user) {
+        let newPassword = prompt("Enter new password:");
+        user.updatePassword(newPassword)
+            .then(() => {
+                console.log("Password updated successfully");
+            })
+            .catch((error) => {
+                console.error("Password update error:", error);
+            });
+    } else {
+        console.log("No user is currently logged in.");
+    }
+}
+
+function deleteUserData() {
+    const user = firebase.auth().currentUser;
+    if (user) {
+        let userId = user.uid;
+        firebase.database().ref('users/' + userId).remove()
+            .then(() => {
+                console.log("User data deleted successfully");
+            })
+            .catch((error) => {
+                console.error("User data deletion error:", error);
+            });
+    } else {
+        console.log("No user is currently logged in.");
+    }
+}
+
+
+        
+    </script>
+</body>
+
+</html>
